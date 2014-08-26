@@ -35,7 +35,8 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
       </div>
       <div class="angular-date-range-picker__buttons">
         <a ng-click="ok($event)" class="angular-date-range-picker__apply">Apply</a>
-        <a ng-click="hide($event)" class="angular-date-range-picker__cancel">cancel</a>
+        <a ng-click="hide($event)" class="angular-date-range-picker__cancel">Cancel</a>
+        <a ng-click="reset($event)" class="angular-date-range-picker__reset">Reset</a>
       </div>
     </div>
   </div>
@@ -210,6 +211,14 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
       $scope.model = $scope.selection
       $timeout -> $scope.callback() if $scope.callback
       $scope.hide()
+      
+    $scope.reset = ($event) ->
+      $event?.stopPropagation?()
+      $scope.selection = moment().range(
+        moment().startOf("month").startOf("day"),
+        moment().endOf("month").startOf("day")
+      )
+      $scope.ok()
 
     $scope.select = (day, $event) ->
       $event?.stopPropagation?()
