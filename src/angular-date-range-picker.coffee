@@ -1,6 +1,6 @@
 angular.module "dateRangePicker", ['pasvaz.bindonce']
 
-angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$timeout", ($compile, $timeout) ->
+angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$timeout", '$document', ($compile, $timeout, $document) ->
   # constants
   pickerTemplate = """
   <div ng-show="visible" class="angular-date-range-picker__picker" ng-click="handlePickerClick($event)" ng-class="{'angular-date-range-picker--ranged': showRanged }">
@@ -46,7 +46,7 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
   restrict: "AE"
   replace: true
   template: """
-  <span tabindex="0" ng-keydown="hide()" class="angular-date-range-picker__input">
+  <span tabindex="0" ng-keydown="hide()" class="angular-date-range-picker__input daterange-parent">
     <span ng-if="showRanged">        
         <i ng-if="model != null" class="fa fa-filter"></i>
         <i ng-if="model == null" class="fa fa-filter angular-date-range-picker__is-empty"></i>
@@ -196,11 +196,13 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
       _calculateRange()
       _prepare()
       $scope.visible = true
+      $(element).css {'z-index': 1000}
 
     $scope.hide = ($event) ->
       $event?.stopPropagation?()
       $scope.visible = false
       $scope.start = null
+      $(element).css {'z-index': 3}
 
     $scope.prevent_select = ($event) ->
       $event?.stopPropagation?()
@@ -272,18 +274,28 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
     element.append(domEl)
 
     element.bind "click", (e) ->
-      e?.stopPropagation?()
       $scope.$apply ->
         if $scope.visible then $scope.hide() else $scope.show()
 
-    documentClickFn = (e) ->
-      $scope.$apply -> $scope.hide()
-      true
+    $document.on "click", (e) ->
+        target = e.target
+        parentFound = false
+        while angular.isDefined(target) and target isnt null and not parentFound
+            if _.contains(target.classList, "daterange-parent") and not parentFound
+                parentFound = true
+                break
+            target = target.parentElement
 
-    angular.element(document).bind "click", documentClickFn
+        unless parentFound
+            $scope.$apply ->
+                $scope.hide()
+                return
 
-    $scope.$on '$destroy', ->
-      angular.element(document).unbind 'click', documentClickFn
+        if (parentFound) and (not ($(target).is(element)))
+            $scope.$apply ->
+                $scope.hide()
+                return
+        return
 
     _makeQuickList()
     _calculateRange()

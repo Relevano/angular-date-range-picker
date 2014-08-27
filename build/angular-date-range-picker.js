@@ -3,14 +3,14 @@
   angular.module("dateRangePicker", ['pasvaz.bindonce']);
 
   angular.module("dateRangePicker").directive("dateRangePicker", [
-    "$compile", "$timeout", function($compile, $timeout) {
+    "$compile", "$timeout", '$document', function($compile, $timeout, $document) {
       var CUSTOM, pickerTemplate;
       pickerTemplate = "<div ng-show=\"visible\" class=\"angular-date-range-picker__picker\" ng-click=\"handlePickerClick($event)\" ng-class=\"{'angular-date-range-picker--ranged': showRanged }\">\n  <div class=\"angular-date-range-picker__timesheet\">\n    <a ng-click=\"move(-1, $event)\" class=\"angular-date-range-picker__prev-month\">&#9664;</a>\n    <div bindonce ng-repeat=\"month in months\" class=\"angular-date-range-picker__month\">\n      <div class=\"angular-date-range-picker__month-name\" bo-text=\"month.name\"></div>\n      <table class=\"angular-date-range-picker__calendar\">\n        <tr>\n          <th bindonce ng-repeat=\"day in month.weeks[1]\" class=\"angular-date-range-picker__calendar-weekday\" bo-text=\"day.date.format('dd')\">\n          </th>\n        </tr>\n        <tr bindonce ng-repeat=\"week in month.weeks\">\n          <td\n              bo-class='{\n                \"angular-date-range-picker__calendar-day\": day,\n                \"angular-date-range-picker__calendar-day-selected\": day.selected,\n                \"angular-date-range-picker__calendar-day-disabled\": day.disabled,\n                \"angular-date-range-picker__calendar-day-start\": day.start\n              }'\n              ng-repeat=\"day in week track by $index\" ng-click=\"select(day, $event)\">\n              <div class=\"angular-date-range-picker__calendar-day-wrapper\" bo-text=\"day.date.date()\"></div>\n          </td>\n        </tr>\n      </table>\n    </div>\n    <a ng-click=\"move(+1, $event)\" class=\"angular-date-range-picker__next-month\">&#9654;</a>\n  </div>\n  <div class=\"angular-date-range-picker__panel\">\n    <div ng-show=\"showRanged\">\n      Select range: <select ng-click=\"prevent_select($event)\" ng-model=\"quick\" ng-options=\"e.range as e.label for e in quickList\"></select>\n    </div>\n    <div class=\"angular-date-range-picker__buttons\">\n      <a ng-click=\"ok($event)\" class=\"angular-date-range-picker__apply\">Apply</a>\n      <a ng-click=\"hide($event)\" class=\"angular-date-range-picker__cancel\">Cancel</a>\n      <a ng-click=\"reset($event)\" class=\"angular-date-range-picker__reset\">Reset</a>\n    </div>\n  </div>\n</div>";
       CUSTOM = "CUSTOM";
       return {
         restrict: "AE",
         replace: true,
-        template: "<span tabindex=\"0\" ng-keydown=\"hide()\" class=\"angular-date-range-picker__input\">\n  <span ng-if=\"showRanged\">        \n      <i ng-if=\"model != null\" class=\"fa fa-filter\"></i>\n      <i ng-if=\"model == null\" class=\"fa fa-filter angular-date-range-picker__is-empty\"></i>\n  </span>\n  <span ng-if=\"!showRanged\">\n    <span ng-show=\"!!model\">{{ model.format(\"ll\") }}</span>\n    <span ng-hide=\"!!model\">Select date</span>\n  </span>\n</span>",
+        template: "<span tabindex=\"0\" ng-keydown=\"hide()\" class=\"angular-date-range-picker__input daterange-parent\">\n  <span ng-if=\"showRanged\">        \n      <i ng-if=\"model != null\" class=\"fa fa-filter\"></i>\n      <i ng-if=\"model == null\" class=\"fa fa-filter angular-date-range-picker__is-empty\"></i>\n  </span>\n  <span ng-if=\"!showRanged\">\n    <span ng-show=\"!!model\">{{ model.format(\"ll\") }}</span>\n    <span ng-hide=\"!!model\">Select date</span>\n  </span>\n</span>",
         scope: {
           model: "=ngModel",
           customSelectOptions: "=",
@@ -19,7 +19,7 @@
           callback: "&"
         },
         link: function($scope, element, attrs) {
-          var documentClickFn, domEl, _calculateRange, _checkQuickList, _makeQuickList, _prepare;
+          var domEl, _calculateRange, _checkQuickList, _makeQuickList, _prepare;
           $scope.quickListDefinitions = $scope.customSelectOptions;
           if ($scope.quickListDefinitions == null) {
             $scope.quickListDefinitions = [
@@ -154,7 +154,10 @@
             $scope.selection = $scope.model;
             _calculateRange();
             _prepare();
-            return $scope.visible = true;
+            $scope.visible = true;
+            return $(element).css({
+              'z-index': 1000
+            });
           };
           $scope.hide = function($event) {
             if ($event != null) {
@@ -163,7 +166,10 @@
               }
             }
             $scope.visible = false;
-            return $scope.start = null;
+            $scope.start = null;
+            return $(element).css({
+              'z-index': 3
+            });
           };
           $scope.prevent_select = function($event) {
             return $event != null ? typeof $event.stopPropagation === "function" ? $event.stopPropagation() : void 0 : void 0;
@@ -255,11 +261,6 @@
           domEl = $compile(angular.element(pickerTemplate))($scope);
           element.append(domEl);
           element.bind("click", function(e) {
-            if (e != null) {
-              if (typeof e.stopPropagation === "function") {
-                e.stopPropagation();
-              }
-            }
             return $scope.$apply(function() {
               if ($scope.visible) {
                 return $scope.hide();
@@ -268,15 +269,27 @@
               }
             });
           });
-          documentClickFn = function(e) {
-            $scope.$apply(function() {
-              return $scope.hide();
-            });
-            return true;
-          };
-          angular.element(document).bind("click", documentClickFn);
-          $scope.$on('$destroy', function() {
-            return angular.element(document).unbind('click', documentClickFn);
+          $document.on("click", function(e) {
+            var parentFound, target;
+            target = e.target;
+            parentFound = false;
+            while (angular.isDefined(target) && target !== null && !parentFound) {
+              if (_.contains(target.classList, "daterange-parent") && !parentFound) {
+                parentFound = true;
+                break;
+              }
+              target = target.parentElement;
+            }
+            if (!parentFound) {
+              $scope.$apply(function() {
+                $scope.hide();
+              });
+            }
+            if (parentFound && (!($(target).is(element)))) {
+              $scope.$apply(function() {
+                $scope.hide();
+              });
+            }
           });
           _makeQuickList();
           _calculateRange();
