@@ -10,7 +10,7 @@
       return {
         restrict: "AE",
         replace: true,
-        template: "<span tabindex=\"0\" ng-keydown=\"hide()\" class=\"angular-date-range-picker__input\">\n  <span ng-if=\"showRanged\">\n    <span ng-show=\"!!model\">{{ model.start.format(\"ll\") }} - {{ model.end.format(\"ll\") }}</span>\n    <span ng-hide=\"!!model\">Select date range</span>\n  </span>\n  <span ng-if=\"!showRanged\">\n    <span ng-show=\"!!model\">{{ model.format(\"ll\") }}</span>\n    <span ng-hide=\"!!model\">Select date</span>\n  </span>\n</span>",
+        template: "<span tabindex=\"0\" ng-keydown=\"hide()\" class=\"angular-date-range-picker__input\">\n  <span ng-if=\"showRanged\">        \n      <i ng-if=\"model != null\" class=\"fa fa-filter\"></i>\n      <i ng-if=\"model == null\" class=\"fa fa-filter angular-date-range-picker__is-empty\"></i>\n  </span>\n  <span ng-if=\"!showRanged\">\n    <span ng-show=\"!!model\">{{ model.format(\"ll\") }}</span>\n    <span ng-hide=\"!!model\">Select date</span>\n  </span>\n</span>",
         scope: {
           model: "=ngModel",
           customSelectOptions: "=",
@@ -188,8 +188,14 @@
                 $event.stopPropagation();
               }
             }
-            $scope.selection = moment().range(moment().startOf("month").startOf("day"), moment().endOf("month").startOf("day"));
-            return $scope.ok();
+            $scope.model = null;
+            $scope.selection = null;
+            $timeout(function() {
+              if ($scope.callback) {
+                return $scope.callback();
+              }
+            });
+            return $scope.hide();
           };
           $scope.select = function(day, $event) {
             if ($event != null) {

@@ -47,9 +47,9 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
   replace: true
   template: """
   <span tabindex="0" ng-keydown="hide()" class="angular-date-range-picker__input">
-    <span ng-if="showRanged">
-      <span ng-show="!!model">{{ model.start.format("ll") }} - {{ model.end.format("ll") }}</span>
-      <span ng-hide="!!model">Select date range</span>
+    <span ng-if="showRanged">        
+        <i ng-if="model != null" class="fa fa-filter"></i>
+        <i ng-if="model == null" class="fa fa-filter angular-date-range-picker__is-empty"></i>
     </span>
     <span ng-if="!showRanged">
       <span ng-show="!!model">{{ model.format("ll") }}</span>
@@ -214,11 +214,10 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
       
     $scope.reset = ($event) ->
       $event?.stopPropagation?()
-      $scope.selection = moment().range(
-        moment().startOf("month").startOf("day"),
-        moment().endOf("month").startOf("day")
-      )
-      $scope.ok()
+      $scope.model = null
+      $scope.selection = null
+      $timeout -> $scope.callback() if $scope.callback
+      $scope.hide()     
 
     $scope.select = (day, $event) ->
       $event?.stopPropagation?()
