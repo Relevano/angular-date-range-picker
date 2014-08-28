@@ -155,9 +155,10 @@
             _calculateRange();
             _prepare();
             $scope.visible = true;
-            return $(element).css({
+            $(element).css({
               'z-index': 1000
             });
+            return true;
           };
           $scope.hide = function($event) {
             if ($event != null) {
@@ -167,9 +168,10 @@
             }
             $scope.visible = false;
             $scope.start = null;
-            return $(element).css({
+            $(element).css({
               'z-index': 3
             });
+            return true;
           };
           $scope.prevent_select = function($event) {
             return $event != null ? typeof $event.stopPropagation === "function" ? $event.stopPropagation() : void 0 : void 0;
@@ -186,7 +188,8 @@
                 return $scope.callback();
               }
             });
-            return $scope.hide();
+            $scope.hide();
+            return true;
           };
           $scope.reset = function($event) {
             if ($event != null) {
@@ -201,7 +204,8 @@
                 return $scope.callback();
               }
             });
-            return $scope.hide();
+            $scope.hide();
+            return true;
           };
           $scope.select = function(day, $event) {
             if ($event != null) {

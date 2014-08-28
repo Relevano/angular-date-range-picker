@@ -197,12 +197,14 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
       _prepare()
       $scope.visible = true
       $(element).css {'z-index': 1000}
+      return true
 
     $scope.hide = ($event) ->
       $event?.stopPropagation?()
       $scope.visible = false
       $scope.start = null
       $(element).css {'z-index': 3}
+      return true
 
     $scope.prevent_select = ($event) ->
       $event?.stopPropagation?()
@@ -213,6 +215,7 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
       $scope.model = $scope.selection
       $timeout -> $scope.callback() if $scope.callback
       $scope.hide()
+      return true
       
     $scope.reset = ($event) ->
       $event?.stopPropagation?()
@@ -220,6 +223,7 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
       $scope.selection = null
       $timeout -> $scope.callback() if $scope.callback
       $scope.hide()     
+      return true
 
     $scope.select = (day, $event) ->
       $event?.stopPropagation?()
