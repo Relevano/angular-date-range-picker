@@ -281,7 +281,7 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
       $scope.$apply ->
         if $scope.visible then $scope.hide() else $scope.show()
 
-    $document.on "click", (e) ->
+    clickFunction = (e) ->
         target = e.target
         parentFound = false
         while angular.isDefined(target) and target isnt null and not parentFound
@@ -300,6 +300,12 @@ angular.module("dateRangePicker").directive "dateRangePicker", ["$compile", "$ti
                 $scope.hide()
                 return
         return
+        
+
+    $document.on "click", clickFunction
+    
+    $scope.$on '$destroy', ->
+        $document.unbind 'click', clickFunction
 
     _makeQuickList()
     _calculateRange()

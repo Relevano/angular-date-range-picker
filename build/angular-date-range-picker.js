@@ -19,7 +19,7 @@
           callback: "&"
         },
         link: function($scope, element, attrs) {
-          var domEl, _calculateRange, _checkQuickList, _makeQuickList, _prepare;
+          var clickFunction, domEl, _calculateRange, _checkQuickList, _makeQuickList, _prepare;
           $scope.quickListDefinitions = $scope.customSelectOptions;
           if ($scope.quickListDefinitions == null) {
             $scope.quickListDefinitions = [
@@ -273,7 +273,7 @@
               }
             });
           });
-          $document.on("click", function(e) {
+          clickFunction = function(e) {
             var parentFound, target;
             target = e.target;
             parentFound = false;
@@ -294,6 +294,10 @@
                 $scope.hide();
               });
             }
+          };
+          $document.on("click", clickFunction);
+          $scope.$on('$destroy', function() {
+            return $document.unbind('click', clickFunction);
           });
           _makeQuickList();
           _calculateRange();
